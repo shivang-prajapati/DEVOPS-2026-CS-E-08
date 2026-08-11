@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <form id="registerForm">
+        <h2>Create Account</h2>
+
+        <div class="input-box">
+            <label>Full Name</label>
+            <input type="text" id="name" placeholder="Enter your name">
+            <small class="error"></small>
+        </div>
+
+        <div class="input-box">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="Enter your email">
+            <small class="error"></small>
+        </div>
+
+        <div class="input-box">
+            <label>Password</label>
+
+            <div class="password-box">
+                <input type="password" id="password" placeholder="Enter password">
+                <button type="button" id="togglePassword">👁</button>
+            </div>
+
+            <small class="error"></small>
+        </div>
+
+        <div class="input-box">
+            <label>Mobile Number</label>
+            <input type="text" id="mobile" maxlength="10" placeholder="Enter mobile number">
+            <small class="error"></small>
+        </div>
+
+        <button type="submit" class="btn">Register</button>
+
+        <p id="success"></p>
+
+    </form>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

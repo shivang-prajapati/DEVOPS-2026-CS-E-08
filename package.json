@@ -1,0 +1,24 @@
+{
+  "name": "api-call-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shivang-prajapati/project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shivang-prajapati/project/issues"
+  },
+  "homepage": "https://github.com/shivang-prajapati/project#readme",
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
+}
