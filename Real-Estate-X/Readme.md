@@ -1,6 +1,6 @@
 <div align="center">
 
-# Homeverse 🏡 Real Estate Agency Website 🌍
+# EstateX 🏡 Real Estate Agency Website 🌍
 
 <br/>
 
@@ -16,7 +16,7 @@
 
 ### 🧠 What is it
 
-**Homeverse** is a digital platform for showcasing residential and commercial properties for sale or rent.  
+**EstateX** is a digital platform for showcasing residential and commercial properties for sale or rent.  
 It focuses on an intuitive interface, elegant visuals, and interactive features for a seamless browsing experience.
 
 ---
@@ -24,7 +24,7 @@ It focuses on an intuitive interface, elegant visuals, and interactive features 
 ### 💡 Why it is
 
 Real estate websites require **mobile-friendly, visually appealing layouts** that provide easy navigation and fast access to property details.  
-**Homeverse** delivers a clean, modern experience optimized for Pakistani users and overseas clients.
+**EstateX** delivers a clean, modern experience optimized for Pakistani users and overseas clients.
 
 ---
 
@@ -40,7 +40,7 @@ Many real estate websites
 
 ### 🧩 What is the Solution
 
-**Homeverse** solves these problems with
+**EstateX** solves these problems with
 
 - 🏠 **Responsive Design** optimized for mobile, tablet, and desktop  
 - 🔍 **Property Search & Filters** by location, price, and type  
