@@ -1,0 +1,24 @@
+{
+  "name": "devops-estatex",
+  "version": "1.0.0",
+  "description": "EstateX Real Estate Web Platform with Express Backend and Jenkins CI/CD Testing",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/api.test.js"
+  },
+  "keywords": [
+    "devops",
+    "real-estate",
+    "jenkins",
+    "express",
+    "sqlite"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7"
+  }
+}
