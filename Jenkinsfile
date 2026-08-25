@@ -25,7 +25,11 @@ pipeline {
                     def requiredFiles = [
                         'Real-Estate-X/index.html',
                         'Real-Estate-X/assets/css/style.css',
-                        'Real-Estate-X/assets/js/script.js'
+                        'Real-Estate-X/assets/js/script.js',
+                        'server.js',
+                        'db.js',
+                        'package.json',
+                        'test/api.test.js'
                     ]
 
                     for (file in requiredFiles) {
@@ -64,7 +68,7 @@ pipeline {
             }
         }
 
-        stage('Validate Website Sections') {
+        stage('Validate Website Sections & Data Forms') {
             steps {
                 script {
                     def htmlContent = readFile('Real-Estate-X/index.html')
@@ -74,14 +78,15 @@ pipeline {
                         'id="about"',
                         'id="service"',
                         'id="property"',
-                        'id="blog"'
+                        'id="blog"',
+                        'id="contact-form"'
                     ]
 
                     for (section in requiredSections) {
                         if (!htmlContent.contains(section)) {
-                            error("Website section missing: ${section}")
+                            error("Website section or form missing: ${section}")
                         }
-                        echo "Section found: ${section}"
+                        echo "Section/Form found: ${section}"
                     }
                 }
             }
@@ -147,10 +152,36 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                echo 'Installing Node.js dependencies for backend and database...'
+                script {
+                    if (isUnix()) {
+                        sh 'npm install'
+                    } else {
+                        bat 'npm install'
+                    }
+                }
+            }
+        }
+
+        stage('Test Data Entry API & Database') {
+            steps {
+                echo 'Running automated data entry backend and SQLite database tests...'
+                script {
+                    if (isUnix()) {
+                        sh 'npm test'
+                    } else {
+                        bat 'npm test'
+                    }
+                }
+            }
+        }
+
         stage('Build Result') {
             steps {
-                echo 'All Jenkins validation tests passed successfully.'
-                echo 'EstateX project is ready for deployment.'
+                echo 'All Jenkins validation and data entry tests passed successfully.'
+                echo 'EstateX project with Backend & Database is ready for deployment.'
             }
         }
     }
