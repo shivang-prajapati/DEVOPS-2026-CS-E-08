@@ -67,6 +67,21 @@ A polished, responsive real estate website that
 
 HTML5 • CSS3 • JavaScript
 
+### Jenkins Automatic Testing
+
+The repository includes a Jenkins pipeline that validates the project structure,
+HTML, website sections, assets, property listings, and services after every
+push. To enable automatic builds:
+
+1. Create a Pipeline job in Jenkins using **Pipeline script from SCM**.
+2. Select **Git**, enter this repository URL, and set the script path to `Jenkinsfile`.
+3. Enable **GitHub hook trigger for GITScm polling** in the job configuration.
+4. Add a GitHub webhook for `https://<your-jenkins-host>/github-webhook/`, using
+  `application/json` and the **push** event.
+
+The Jenkins host must be reachable by GitHub. The checks run against the
+`Real-Estate-X` project directory.
+
 ---
 
 <div align="center">

@@ -1,6 +1,15 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
     stages {
 
         stage('Checkout') {
@@ -14,9 +23,9 @@ pipeline {
             steps {
                 script {
                     def requiredFiles = [
-                        'index.html',
-                        'assets/css/style.css',
-                        'assets/js/script.js'
+                        'Real-Estate-X/index.html',
+                        'Real-Estate-X/assets/css/style.css',
+                        'Real-Estate-X/assets/js/script.js'
                     ]
 
                     for (file in requiredFiles) {
@@ -32,7 +41,7 @@ pipeline {
         stage('Validate HTML') {
             steps {
                 script {
-                    def htmlContent = readFile('index.html')
+                    def htmlContent = readFile('Real-Estate-X/index.html')
 
                     if (!htmlContent.contains('<!DOCTYPE html>')) {
                         error('HTML validation failed: DOCTYPE declaration not found.')
@@ -46,8 +55,8 @@ pipeline {
                         error('HTML validation failed: Closing HTML tag not found.')
                     }
 
-                    if (!htmlContent.contains('<title>Homeverse</title>')) {
-                        error('HTML validation failed: Expected page title "Homeverse" not found.')
+                    if (!htmlContent.contains('<title>EstateX</title>')) {
+                        error('HTML validation failed: Expected page title "EstateX" not found.')
                     }
 
                     echo 'HTML basic validation passed.'
@@ -58,7 +67,7 @@ pipeline {
         stage('Validate Website Sections') {
             steps {
                 script {
-                    def htmlContent = readFile('index.html')
+                    def htmlContent = readFile('Real-Estate-X/index.html')
 
                     def requiredSections = [
                         'id="home"',
@@ -81,7 +90,7 @@ pipeline {
         stage('Validate Assets') {
             steps {
                 script {
-                    def htmlContent = readFile('index.html')
+                    def htmlContent = readFile('Real-Estate-X/index.html')
 
                     if (!htmlContent.contains('./assets/css/style.css')) {
                         error('CSS stylesheet link not found in index.html.')
@@ -99,7 +108,7 @@ pipeline {
         stage('Test Property Listings') {
             steps {
                 script {
-                    def htmlContent = readFile('index.html')
+                    def htmlContent = readFile('Real-Estate-X/index.html')
 
                     def requiredProperties = [
                         'New Apartment Nice View',
@@ -120,7 +129,7 @@ pipeline {
         stage('Test Services') {
             steps {
                 script {
-                    def htmlContent = readFile('index.html')
+                    def htmlContent = readFile('Real-Estate-X/index.html')
 
                     def requiredServices = [
                         'Buy a home',
@@ -141,7 +150,7 @@ pipeline {
         stage('Build Result') {
             steps {
                 echo 'All Jenkins validation tests passed successfully.'
-                echo 'Homeverse project is ready for deployment.'
+                echo 'EstateX project is ready for deployment.'
             }
         }
     }
