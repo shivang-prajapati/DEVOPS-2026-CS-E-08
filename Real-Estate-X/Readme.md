@@ -67,13 +67,6 @@ A polished, responsive real estate website that
 
 HTML5 • CSS3 • JavaScript
 
-### 📁 Team Structure
-
-- `frontend/` — website pages, styles, JavaScript, and image assets
-- `backend/` — server application, APIs, and data models
-- `testing/` — automated tests, fixtures, and test documentation
-- `Jenkinsfile` — root CI pipeline used to validate the project
-
 ### Jenkins Automatic Testing
 
 The repository includes a Jenkins pipeline that validates the project structure,
@@ -87,7 +80,7 @@ push. To enable automatic builds:
   `application/json` and the **push** event.
 
 The Jenkins host must be reachable by GitHub. The checks run against the
-`frontend` project directory.
+`Real-Estate-X` project directory.
 
 ---
 
