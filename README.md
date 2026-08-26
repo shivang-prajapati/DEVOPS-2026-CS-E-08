@@ -65,7 +65,14 @@ A polished, responsive real estate website that
 
 ### 🛠️ Technology Used
 
-HTML5 • CSS3 • JavaScript
+HTML5 • CSS3 • JavaScript • Node.js • Express • MongoDB
+
+### 📁 Team Structure
+
+- `frontend/` — website pages, styles, JavaScript, and image assets
+- `backend/` — server application, APIs, and data models
+- `testing/` — automated tests, fixtures, and test documentation
+- `Jenkinsfile` — root CI pipeline used to validate the project
 
 ### Jenkins Automatic Testing
 
@@ -80,4 +87,21 @@ push. To enable automatic builds:
   `application/json` and the **push** event.
 
 The Jenkins host must be reachable by GitHub. The checks run against the
-`Real-Estate-X` project directory.
+`frontend` project directory and require a MongoDB service configured through
+`MONGODB_URI` and `MONGODB_DB`.
+
+### MongoDB Setup
+
+1. Copy `.env.example` to `.env`.
+2. Set `MONGODB_URI` to your local MongoDB or MongoDB Atlas connection string.
+3. Set `MONGODB_DB` to the database name you want to use.
+4. Run `npm start` and verify `GET /api/health`.
+
+---
+
+<div align="center">
+
+Designed and Developed with 🧠 by Muhammad Tanveer Abbas 🌟
+
+</div>
+
