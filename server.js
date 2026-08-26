@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static frontend files from Real-Estate-X
+// Serve static frontend files
 app.use(express.static(path.join(__dirname, 'Real-Estate-X')));
 
 // API Routes
