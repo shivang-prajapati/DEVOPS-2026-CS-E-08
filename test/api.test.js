@@ -45,7 +45,7 @@ async function runTests() {
   
   // Start server on test port
   server = app.listen(PORT);
-  // Wait brief moment for SQLite connection
+  // Allow the MongoDB connection to initialize before requests.
   await new Promise(r => setTimeout(r, 500));
 
   try {
@@ -62,7 +62,7 @@ async function runTests() {
       name: 'Jenkins Test User',
       email: 'jenkins.test@estatex.io',
       subject: 'Automated CI/CD Test Inquiry',
-      message: 'Testing data entry persistence into SQLite database.'
+      message: 'Testing data entry persistence into MongoDB database.'
     };
     const postContact = await request('POST', '/api/contact', contactPayload);
     assert.strictEqual(postContact.status, 201, 'Contact creation status should be 201');
@@ -76,7 +76,7 @@ async function runTests() {
     assert.strictEqual(getContacts.status, 200, 'GET /api/contact status should be 200');
     assert.ok(Array.isArray(getContacts.body.data), 'Contacts data should be an array');
     const foundContact = getContacts.body.data.find(c => c.email === 'jenkins.test@estatex.io');
-    assert.ok(foundContact, 'Submitted contact entry must be retrieved from SQLite DB');
+    assert.ok(foundContact, 'Submitted contact entry must be retrieved from MongoDB');
     console.log(' -> PASSED: Retrieved contact entry from database:', foundContact.name);
 
     // 4. Submit Property Enquiry Entry
