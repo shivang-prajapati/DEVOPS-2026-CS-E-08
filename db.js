@@ -1,130 +1,81 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+require('dotenv').config();
+const { MongoClient } = require('mongodb');
 
-const dbPath = path.join(__dirname, 'database.sqlite');
+const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017';
+const databaseName = process.env.MONGODB_DB || 'estatex';
 
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  } else {
-    console.log('Connected to SQLite database at:', dbPath);
-    initTables();
-  }
-});
+let client;
+let database;
+let connectionPromise;
 
-function initTables() {
-  db.serialize(() => {
-    // Contacts table
-    db.run(`
-      CREATE TABLE IF NOT EXISTS contacts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        subject TEXT,
-        message TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Enquiries table
-    db.run(`
-      CREATE TABLE IF NOT EXISTS enquiries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        phone TEXT,
-        property_id TEXT,
-        message TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Properties table
-    db.run(`
-      CREATE TABLE IF NOT EXISTS properties (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        price TEXT NOT NULL,
-        type TEXT NOT NULL,
-        location TEXT NOT NULL,
-        image TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Insert sample initial properties if empty
-    db.get('SELECT COUNT(*) AS count FROM properties', (err, row) => {
-      if (!err && row.count === 0) {
-        const stmt = db.prepare('INSERT INTO properties (title, price, type, location, image) VALUES (?, ?, ?, ?, ?)');
-        stmt.run('New Apartment Nice View', '$30,000/Month', 'Apartment', 'Belmont Gardens, Chicago', './assets/images/property-1.jpg');
-        stmt.run('Modern Apartments', '$45,000/Month', 'Apartment', 'Rego Park, New York', './assets/images/property-2.jpg');
-        stmt.run('Luxury villa in Rego Park', '$85,000/Month', 'Villa', 'Rego Park, New York', './assets/images/property-3.jpg');
-        stmt.finalize();
-        console.log('Initial sample properties seeded.');
-      }
+async function connectDb() {
+  if (database) return database;
+  if (!connectionPromise) {
+    client = new MongoClient(mongoUri);
+    connectionPromise = client.connect().then(() => {
+      database = client.db(databaseName);
+      return database;
+    }).catch((error) => {
+      connectionPromise = undefined;
+      throw error;
     });
-  });
+  }
+  return connectionPromise;
 }
 
-// Helper methods
+function serialize(document) {
+  const { _id, ...data } = document;
+  return { id: _id.toString(), ...data };
+}
+
+async function seedProperties(databaseConnection) {
+  const properties = databaseConnection.collection('properties');
+  if (await properties.countDocuments() === 0) {
+    await properties.insertMany([
+      { title: 'New Apartment Nice View', price: '$30,000/Month', type: 'Apartment', location: 'Belmont Gardens, Chicago', image: './assets/images/property-1.jpg', created_at: new Date() },
+      { title: 'Modern Apartments', price: '$45,000/Month', type: 'Apartment', location: 'Rego Park, New York', image: './assets/images/property-2.jpg', created_at: new Date() },
+      { title: 'Luxury villa in Rego Park', price: '$85,000/Month', type: 'Villa', location: 'Rego Park, New York', image: './assets/images/property-3.jpg', created_at: new Date() }
+    ]);
+  }
+}
+
 const dbAsync = {
-  addContact: (name, email, subject, message) => {
-    return new Promise((resolve, reject) => {
-      const sql = 'INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)';
-      db.run(sql, [name, email, subject, message], function (err) {
-        if (err) reject(err);
-        else resolve({ id: this.lastID, name, email, subject, message });
-      });
-    });
+  addContact: async (name, email, subject, message) => {
+    const document = { name, email, subject, message, created_at: new Date() };
+    const result = await (await connectDb()).collection('contacts').insertOne(document);
+    return serialize({ _id: result.insertedId, ...document });
   },
-
-  getContacts: () => {
-    return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM contacts ORDER BY created_at DESC', [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
+  getContacts: async () => {
+    const documents = await (await connectDb()).collection('contacts').find().sort({ created_at: -1 }).toArray();
+    return documents.map(serialize);
   },
-
-  addEnquiry: (name, email, phone, property_id, message) => {
-    return new Promise((resolve, reject) => {
-      const sql = 'INSERT INTO enquiries (name, email, phone, property_id, message) VALUES (?, ?, ?, ?, ?)';
-      db.run(sql, [name, email, phone, property_id, message], function (err) {
-        if (err) reject(err);
-        else resolve({ id: this.lastID, name, email, phone, property_id, message });
-      });
-    });
+  addEnquiry: async (name, email, phone, property_id, message) => {
+    const document = { name, email, phone, property_id, message, created_at: new Date() };
+    const result = await (await connectDb()).collection('enquiries').insertOne(document);
+    return serialize({ _id: result.insertedId, ...document });
   },
-
-  getEnquiries: () => {
-    return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM enquiries ORDER BY created_at DESC', [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
+  getEnquiries: async () => {
+    const documents = await (await connectDb()).collection('enquiries').find().sort({ created_at: -1 }).toArray();
+    return documents.map(serialize);
   },
-
-  getProperties: () => {
-    return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM properties ORDER BY id ASC', [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
+  getProperties: async () => {
+    const databaseConnection = await connectDb();
+    await seedProperties(databaseConnection);
+    const documents = await databaseConnection.collection('properties').find().sort({ created_at: 1 }).toArray();
+    return documents.map(serialize);
   },
-
-  addProperty: (title, price, type, location, image) => {
-    return new Promise((resolve, reject) => {
-      const sql = 'INSERT INTO properties (title, price, type, location, image) VALUES (?, ?, ?, ?, ?)';
-      db.run(sql, [title, price, type, location, image], function (err) {
-        if (err) reject(err);
-        else resolve({ id: this.lastID, title, price, type, location, image });
-      });
-    });
+  addProperty: async (title, price, type, location, image) => {
+    const document = { title, price, type, location, image, created_at: new Date() };
+    const result = await (await connectDb()).collection('properties').insertOne(document);
+    return serialize({ _id: result.insertedId, ...document });
   }
 };
 
-module.exports = { db, dbAsync };
+async function closeDb() {
+  if (client) await client.close();
+  client = undefined;
+  database = undefined;
+  connectionPromise = undefined;
+}
+
+module.exports = { connectDb, closeDb, dbAsync };

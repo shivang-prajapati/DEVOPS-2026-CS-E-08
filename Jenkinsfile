@@ -23,9 +23,9 @@ pipeline {
             steps {
                 script {
                     def requiredFiles = [
-                        'Real-Estate-X/index.html',
-                        'Real-Estate-X/assets/css/style.css',
-                        'Real-Estate-X/assets/js/script.js',
+                        'frontend/index.html',
+                        'frontend/assets/css/style.css',
+                        'frontend/assets/js/script.js',
                         'server.js',
                         'db.js',
                         'package.json',
@@ -45,7 +45,7 @@ pipeline {
         stage('Validate HTML') {
             steps {
                 script {
-                    def htmlContent = readFile('Real-Estate-X/index.html')
+                    def htmlContent = readFile('frontend/index.html')
 
                     if (!htmlContent.contains('<!DOCTYPE html>')) {
                         error('HTML validation failed: DOCTYPE declaration not found.')
@@ -71,7 +71,7 @@ pipeline {
         stage('Validate Website Sections & Data Forms') {
             steps {
                 script {
-                    def htmlContent = readFile('Real-Estate-X/index.html')
+                    def htmlContent = readFile('frontend/index.html')
 
                     def requiredSections = [
                         'id="home"',
@@ -95,7 +95,7 @@ pipeline {
         stage('Validate Assets') {
             steps {
                 script {
-                    def htmlContent = readFile('Real-Estate-X/index.html')
+                    def htmlContent = readFile('frontend/index.html')
 
                     if (!htmlContent.contains('./assets/css/style.css')) {
                         error('CSS stylesheet link not found in index.html.')
@@ -113,7 +113,7 @@ pipeline {
         stage('Test Property Listings') {
             steps {
                 script {
-                    def htmlContent = readFile('Real-Estate-X/index.html')
+                    def htmlContent = readFile('frontend/index.html')
 
                     def requiredProperties = [
                         'New Apartment Nice View',
@@ -134,7 +134,7 @@ pipeline {
         stage('Test Services') {
             steps {
                 script {
-                    def htmlContent = readFile('Real-Estate-X/index.html')
+                    def htmlContent = readFile('frontend/index.html')
 
                     def requiredServices = [
                         'Buy a home',
@@ -167,7 +167,7 @@ pipeline {
 
         stage('Test Data Entry API & Database') {
             steps {
-                echo 'Running automated data entry backend and SQLite database tests...'
+                echo 'Running automated data entry backend and MongoDB database tests...'
                 script {
                     if (isUnix()) {
                         sh 'npm test'
