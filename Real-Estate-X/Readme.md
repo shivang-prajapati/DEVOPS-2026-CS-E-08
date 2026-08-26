@@ -81,12 +81,3 @@ push. To enable automatic builds:
 
 The Jenkins host must be reachable by GitHub. The checks run against the
 `Real-Estate-X` project directory.
-
----
-
-<div align="center">
-
-Designed and Developed with 🧠 by Muhammad Tanveer Abbas 🌟
-
-</div>
-
