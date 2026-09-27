@@ -3,3 +3,8 @@ database.sqlite
 .DS_Store
 DS_Store
 *.log
+<<<<<<< HEAD
+=======
+node_modules/
+.DS_Store
+>>>>>>> 2d6fb0b4febe0abc308c42b1f938a2672ceaa4e3

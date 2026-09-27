@@ -83,11 +83,14 @@ def get_git_metrics(interval="weekly"):
             if len(parts) >= 5:
                 sha = parts[1].strip()
                 author = parts[2].strip()
+<<<<<<< HEAD
                 author_aliases = {
                     "Deployer": "Rythem-Lab",
                     "Rythem_Goyal": "Rythem-Lab"
                 }
                 author = author_aliases.get(author, author)
+=======
+>>>>>>> 2d6fb0b4febe0abc308c42b1f938a2672ceaa4e3
                 date_str = parts[3].strip()
                 msg = parts[4].strip()
             else:
