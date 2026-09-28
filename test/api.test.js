@@ -53,7 +53,10 @@ async function runTests() {
     console.log('[TEST 1] GET /api/health');
     const health = await request('GET', '/api/health');
     assert.strictEqual(health.status, 200, 'Health endpoint status should be 200');
+    assert.strictEqual(health.body.success, true, 'Health response success should be true');
     assert.strictEqual(health.body.status, 'UP', 'Health status should be UP');
+    assert.ok(health.body.timestamp, 'Health response should include a timestamp');
+    assert.ok(health.body.environment, 'Health response should include environment information');
     console.log(' -> PASSED: Health check OK');
 
     // 2. Submit Contact Entry
