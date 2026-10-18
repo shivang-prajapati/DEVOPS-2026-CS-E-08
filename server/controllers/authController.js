@@ -1,8 +1,9 @@
 const bcrypt = require('bcryptjs');
 const { signToken } = require('../config/auth');
+const { isSupabaseConfigured, usersAsync } = require('../config/database');
 const { sendSuccess, sendError } = require('../utils/response');
 
-const users = [
+const users = process.env.NODE_ENV === 'production' ? [] : [
   {
     id: 1,
     name: 'Admin User',
@@ -35,26 +36,32 @@ const users = [
 
 const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return sendError(res, 400, 'Name, email, and password are required.');
     }
 
-    const existingUser = users.find((user) => user.email.toLowerCase() === String(email).toLowerCase());
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const existingUser = isSupabaseConfigured
+      ? await usersAsync.getByEmail(normalizedEmail)
+      : users.find((user) => user.email.toLowerCase() === normalizedEmail);
     if (existingUser) {
       return sendError(res, 409, 'User already exists.');
     }
 
-    const newUser = {
-      id: users.length + 1,
-      name,
-      email,
-      password: bcrypt.hashSync(password, 10),
-      role: role || 'client'
-    };
+    const passwordHash = await bcrypt.hash(password, 10);
+    const newUser = isSupabaseConfigured
+      ? await usersAsync.create({ name, email: normalizedEmail, password_hash: passwordHash })
+      : {
+        id: users.length + 1,
+        name,
+        email: normalizedEmail,
+        password: passwordHash,
+        role: 'client'
+      };
 
-    users.push(newUser);
+    if (!isSupabaseConfigured) users.push(newUser);
 
     const token = signToken(newUser);
 
@@ -68,6 +75,9 @@ const register = async (req, res) => {
       token
     }, 'User registered successfully.');
   } catch (error) {
+    if (error.code === '23505') {
+      return sendError(res, 409, 'User already exists.');
+    }
     return sendError(res, 500, error.message);
   }
 };
@@ -80,12 +90,15 @@ const login = async (req, res) => {
       return sendError(res, 400, 'Email and password are required.');
     }
 
-    const user = users.find((item) => item.email.toLowerCase() === String(email).toLowerCase());
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = isSupabaseConfigured
+      ? await usersAsync.getByEmail(normalizedEmail)
+      : users.find((item) => item.email.toLowerCase() === normalizedEmail);
     if (!user) {
       return sendError(res, 401, 'Invalid credentials.');
     }
 
-    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash || user.password);
     if (!isPasswordValid) {
       return sendError(res, 401, 'Invalid credentials.');
     }
@@ -106,19 +119,25 @@ const login = async (req, res) => {
   }
 };
 
-const getProfile = (req, res) => {
-  const user = users.find((item) => item.id === req.user.id);
+const getProfile = async (req, res) => {
+  try {
+    const user = isSupabaseConfigured
+      ? await usersAsync.getById(req.user.id)
+      : users.find((item) => item.id === req.user.id);
 
-  if (!user) {
-    return sendError(res, 404, 'User not found.');
+    if (!user) {
+      return sendError(res, 404, 'User not found.');
+    }
+
+    return sendSuccess(res, 200, {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }, 'Profile fetched successfully.');
+  } catch (error) {
+    return sendError(res, 500, error.message);
   }
-
-  return sendSuccess(res, 200, {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role
-  }, 'Profile fetched successfully.');
 };
 
 module.exports = {

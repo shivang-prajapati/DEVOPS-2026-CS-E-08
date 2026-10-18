@@ -5,7 +5,7 @@ const app = require('../server');
 let server;
 const PORT = 3099;
 
-function request(method, path, body = null) {
+function request(method, path, body = null, token = null) {
   return new Promise((resolve, reject) => {
     const payload = body ? JSON.stringify(body) : null;
     const options = {
@@ -19,6 +19,9 @@ function request(method, path, body = null) {
     };
     if (payload) {
       options.headers['Content-Length'] = Buffer.byteLength(payload);
+    }
+    if (token) {
+      options.headers.Authorization = `Bearer ${token}`;
     }
 
     const req = http.request(options, (res) => {
@@ -59,6 +62,16 @@ async function runTests() {
     assert.ok(health.body.environment, 'Health response should include environment information');
     console.log(' -> PASSED: Health check OK');
 
+    const anonymousContacts = await request('GET', '/api/contact');
+    assert.strictEqual(anonymousContacts.status, 401, 'Contact records must require authentication');
+
+    const adminLogin = await request('POST', '/api/auth/login', {
+      email: 'admin@estatex.com',
+      password: 'Admin@123'
+    });
+    assert.strictEqual(adminLogin.status, 200, 'Admin login should succeed for CRM read test');
+    const adminToken = adminLogin.body.data.token;
+
     // 2. Submit Contact Entry
     console.log('\n[TEST 2] POST /api/contact (Data Entry Submission)');
     const contactPayload = {
@@ -75,7 +88,7 @@ async function runTests() {
 
     // 3. Query Contacts from Database
     console.log('\n[TEST 3] GET /api/contact (Data Retrieval)');
-    const getContacts = await request('GET', '/api/contact');
+    const getContacts = await request('GET', '/api/contact', null, adminToken);
     assert.strictEqual(getContacts.status, 200, 'GET /api/contact status should be 200');
     assert.ok(Array.isArray(getContacts.body.data), 'Contacts data should be an array');
     const foundContact = getContacts.body.data.find(c => c.email === 'jenkins.test@estatex.io');

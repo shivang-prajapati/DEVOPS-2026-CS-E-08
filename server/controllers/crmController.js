@@ -1,15 +1,19 @@
-const { dbAsync } = require('../config/database');
+const { dbAsync, isSupabaseConfigured } = require('../config/database');
 const { sendSuccess, sendError } = require('../utils/response');
 
 const healthCheck = (req, res) => {
   const payload = {
     status: 'UP',
     environment: process.env.NODE_ENV || 'development',
-    database: 'sqlite',
+    database: isSupabaseConfigured ? 'supabase' : 'sqlite',
     timestamp: new Date().toISOString()
   };
 
-  return sendSuccess(res, 200, payload, 'EstateX service is healthy');
+  return res.status(200).json({
+    success: true,
+    message: 'EstateX service is healthy',
+    ...payload
+  });
 };
 
 const createContact = async (req, res) => {

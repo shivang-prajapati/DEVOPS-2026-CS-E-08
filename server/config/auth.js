@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? null : 'dev-secret-change-me');
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET must be set in production.');
+}
 
 const signToken = (user) => {
   return jwt.sign(

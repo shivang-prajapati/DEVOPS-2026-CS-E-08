@@ -55,13 +55,16 @@ async function runTests() {
       name: 'New Tester',
       email: 'newtester@estatex.com',
       password: 'StrongPass!123',
-      role: 'client'
+      role: 'admin'
     });
 
     assert.strictEqual(register.status, 201, 'Registration should return 201');
     assert.strictEqual(register.body.success, true, 'Registration success should be true');
     assert.ok(register.body.data.token, 'Registration response should include a token');
-    console.log(' -> PASSED: Registration works');
+    assert.strictEqual(register.body.data.user.role, 'client', 'Public registration must not grant admin role');
+    const registrationAdminCheck = await request('GET', '/api/auth/admin-check', null, register.body.data.token);
+    assert.strictEqual(registrationAdminCheck.status, 403, 'Newly registered users must not access admin routes');
+    console.log(' -> PASSED: Registration cannot grant admin access');
 
     const login = await request('POST', '/api/auth/login', {
       email: 'admin@estatex.com',
