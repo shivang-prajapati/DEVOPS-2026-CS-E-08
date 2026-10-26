@@ -1,42 +1,49 @@
 # EstateX
 
-EstateX is an Express API and static real-estate website. Local development uses SQLite; production uses Supabase Postgres and is hosted as a Vercel Node function.
+EstateX has been reworked toward a MongoDB-backed MERN-style setup. The backend is now powered by Express + Mongoose and uses MongoDB for users, properties, contacts, and enquiries.
 
-## Local Development
+## Stack
 
-Requirements: Node.js 20 or newer.
+- Frontend: static landing page retained for the current repository, with API-ready data flow
+- Backend: Express API with JWT auth and Mongoose models
+- Database: MongoDB
 
-```sh
-npm ci
-npm test
+## Local development
+
+Requirements: Node.js 20+, MongoDB running locally or via Docker.
+
+```bash
+npm install
 npm start
 ```
 
-Without Supabase credentials and with `NODE_ENV` unset or set to `development`, the API uses `database.sqlite` and local demo users. Do not use the demo credentials or development JWT secret in production.
+Set up a `.env` file using the values in `.env.example`.
 
-## Supabase Setup
+## Environment variables
 
-1. Create a Supabase project.
-2. Run [`supabase/schema.sql`](supabase/schema.sql) in the Supabase SQL Editor.
-3. Keep the service-role key on the server only. The schema enables row-level security and grants application access only to `service_role`.
-
-## Vercel Deployment
-
-Import this repository into Vercel and set the project root to the repository root. The checked-in [`vercel.json`](vercel.json) routes the website and API through the Express function. No separate build command or output directory is required.
-
-Set these Vercel environment variables for Production:
-
-- `NODE_ENV=production`
-- `JWT_SECRET` to a long, unique random value
-- `SUPABASE_URL` to the Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY` to the server-side service-role key
-
-Deploy, then verify `/api/health` reports `database: "supabase"`. Public registration always creates client accounts. To grant staff access, register the account first, then promote it from the Supabase SQL Editor, for example:
-
-```sql
-update public.users
-set role = 'admin'
-where email = 'approved-admin@example.com';
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://127.0.0.1:27017/estatex
+JWT_SECRET=change-me-to-a-long-random-secret
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:5173
 ```
 
-The user must sign in again to receive a token with the updated role. Never expose `SUPABASE_SERVICE_ROLE_KEY` in browser code or a `NEXT_PUBLIC_*` variable.
+## API routes
+
+- `GET /api/health`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `GET /api/auth/admin-check`
+- `GET /api/properties`
+- `POST /api/properties`
+- `POST /api/contact`
+- `GET /api/contact`
+- `POST /api/enquiries`
+- `GET /api/enquiries`
+
+## Notes
+
+This repository originally mixed Supabase/SQLite assumptions with a static front end. The latest backend rework removes that mismatch and standardizes on MongoDB and Mongoose as the real persistence layer for the EstateX project.

@@ -1,195 +1,161 @@
-const path = require('path');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
-const isSupabaseConfigured = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+const isSupabaseConfigured = false;
 const isProduction = process.env.NODE_ENV === 'production';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/estatex';
 
-if (isProduction && !isSupabaseConfigured) {
-  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in production.');
-}
+const db = mongoose.connection;
 
-let db = null;
-let supabase = null;
-
-if (isSupabaseConfigured) {
-  const { createClient } = require('@supabase/supabase-js');
-  supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false }
-  });
-} else {
-  const sqlite3 = require('sqlite3').verbose();
-  const dbPath = process.env.DB_PATH || path.join(__dirname, '..', '..', 'database.sqlite');
-
-  db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-      console.error('Error opening database:', err.message);
-    } else {
-      console.log('Connected to SQLite database at:', dbPath);
-      initTables();
+const connectDB = async () => {
+  try {
+    await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      autoIndex: true
+    });
+    console.log('Connected to MongoDB at:', MONGODB_URI);
+    return db;
+  } catch (error) {
+    console.error('MongoDB connection failed:', error.message);
+    if (isProduction) {
+      throw error;
     }
-  });
-}
-
-function initTables() {
-  db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS contacts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      subject TEXT,
-      message TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
-    db.run(`CREATE TABLE IF NOT EXISTS enquiries (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT,
-      property_id TEXT,
-      message TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
-    db.run(`CREATE TABLE IF NOT EXISTS properties (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      price TEXT NOT NULL,
-      type TEXT NOT NULL,
-      location TEXT NOT NULL,
-      image TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
-
-    db.get('SELECT COUNT(*) AS count FROM properties', (err, row) => {
-      if (!err && row.count === 0) {
-        const stmt = db.prepare('INSERT INTO properties (title, price, type, location, image) VALUES (?, ?, ?, ?, ?)');
-        stmt.run('New Apartment Nice View', '$30,000/Month', 'Apartment', 'Belmont Gardens, Chicago', './assets/images/property-1.jpg');
-        stmt.run('Modern Apartments', '$45,000/Month', 'Apartment', 'Rego Park, New York', './assets/images/property-2.jpg');
-        stmt.run('Luxury villa in Rego Park', '$85,000/Month', 'Villa', 'Rego Park, New York', './assets/images/property-3.jpg');
-        stmt.finalize();
-      }
-    });
-  });
-}
-
-const sqliteAsync = {
-  addContact: (name, email, subject, message) => {
-    return new Promise((resolve, reject) => {
-      const sql = 'INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)';
-      db.run(sql, [name, email, subject, message], function (err) {
-        if (err) reject(err);
-        else resolve({ id: this.lastID, name, email, subject, message });
-      });
-    });
-  },
-
-  getContacts: () => {
-    return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM contacts ORDER BY created_at DESC', [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-  },
-
-  addEnquiry: (name, email, phone, property_id, message) => {
-    return new Promise((resolve, reject) => {
-      const sql = 'INSERT INTO enquiries (name, email, phone, property_id, message) VALUES (?, ?, ?, ?, ?)';
-      db.run(sql, [name, email, phone, property_id, message], function (err) {
-        if (err) reject(err);
-        else resolve({ id: this.lastID, name, email, phone, property_id, message });
-      });
-    });
-  },
-
-  getEnquiries: () => {
-    return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM enquiries ORDER BY created_at DESC', [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-  },
-
-  getProperties: () => {
-    return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM properties ORDER BY id ASC', [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-  },
-
-  addProperty: (title, price, type, location, image) => {
-    return new Promise((resolve, reject) => {
-      const sql = 'INSERT INTO properties (title, price, type, location, image) VALUES (?, ?, ?, ?, ?)';
-      db.run(sql, [title, price, type, location, image], function (err) {
-        if (err) reject(err);
-        else resolve({ id: this.lastID, title, price, type, location, image });
-      });
-    });
+    return null;
   }
 };
 
-const supabaseAsync = {
-  addContact: async (name, email, subject, message) => {
-    const { data, error } = await supabase.from('contacts')
-      .insert({ name, email, subject, message }).select().single();
-    if (error) throw error;
-    return data;
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  password: { type: String, required: true },
+  role: {
+    type: String,
+    enum: ['client', 'agent', 'manager', 'admin'],
+    default: 'client'
   },
-  getContacts: async () => {
-    const { data, error } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    return data;
-  },
-  addEnquiry: async (name, email, phone, property_id, message) => {
-    const { data, error } = await supabase.from('enquiries')
-      .insert({ name, email, phone, property_id, message }).select().single();
-    if (error) throw error;
-    return data;
-  },
-  getEnquiries: async () => {
-    const { data, error } = await supabase.from('enquiries').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    return data;
-  },
-  getProperties: async () => {
-    const { data, error } = await supabase.from('properties').select('*').order('id', { ascending: true });
-    if (error) throw error;
-    return data;
-  },
-  addProperty: async (title, price, type, location, image) => {
-    const { data, error } = await supabase.from('properties')
-      .insert({ title, price, type, location, image }).select().single();
-    if (error) throw error;
-    return data;
+  createdAt: { type: Date, default: Date.now }
+}, { collection: 'users' });
+
+userSchema.pre('save', async function nextHook() {
+  if (!this.isModified('password')) return;
+  this.password = await bcrypt.hash(this.password, 10);
+});
+
+userSchema.methods.comparePassword = function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+const propertySchema = new mongoose.Schema({
+  title: { type: String, required: true, trim: true },
+  price: { type: String, required: true },
+  type: { type: String, required: true },
+  location: { type: String, required: true },
+  image: { type: String, default: './assets/images/property-1.jpg' },
+  description: { type: String, default: '' },
+  createdAt: { type: Date, default: Date.now }
+}, { collection: 'properties' });
+
+const contactSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, lowercase: true, trim: true },
+  subject: { type: String, default: '' },
+  message: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+}, { collection: 'contacts' });
+
+const enquirySchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, lowercase: true, trim: true },
+  phone: { type: String, default: '' },
+  property_id: { type: String, default: '' },
+  message: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+}, { collection: 'enquiries' });
+
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+const Property = mongoose.models.Property || mongoose.model('Property', propertySchema);
+const Contact = mongoose.models.Contact || mongoose.model('Contact', contactSchema);
+const Enquiry = mongoose.models.Enquiry || mongoose.model('Enquiry', enquirySchema);
+
+const seedProperties = async () => {
+  const count = await Property.countDocuments();
+  if (count === 0) {
+    await Property.insertMany([
+      {
+        title: 'New Apartment Nice View',
+        price: '$30,000/Month',
+        type: 'Apartment',
+        location: 'Belmont Gardens, Chicago',
+        image: './assets/images/property-1.jpg'
+      },
+      {
+        title: 'Modern Apartments',
+        price: '$45,000/Month',
+        type: 'Apartment',
+        location: 'Rego Park, New York',
+        image: './assets/images/property-2.jpg'
+      },
+      {
+        title: 'Luxury villa in Rego Park',
+        price: '$85,000/Month',
+        type: 'Villa',
+        location: 'Rego Park, New York',
+        image: './assets/images/property-3.jpg'
+      }
+    ]);
   }
 };
 
 const usersAsync = {
   getByEmail: async (email) => {
-    const { data, error } = await supabase.from('users')
-      .select('id, name, email, password_hash, role').eq('email', email).maybeSingle();
-    if (error) throw error;
-    return data;
+    const user = await User.findOne({ email }).lean();
+    return user ? { ...user, id: user._id.toString() } : null;
   },
   getById: async (id) => {
-    const { data, error } = await supabase.from('users')
-      .select('id, name, email, password_hash, role').eq('id', id).maybeSingle();
-    if (error) throw error;
-    return data;
+    const user = await User.findById(id).lean();
+    return user ? { ...user, id: user._id.toString() } : null;
   },
-  create: async ({ name, email, password_hash }) => {
-    const { data, error } = await supabase.from('users')
-      .insert({ name, email, password_hash, role: 'client' })
-      .select('id, name, email, password_hash, role').single();
-    if (error) throw error;
-    return data;
+  create: async ({ name, email, password, role = 'client' }) => {
+    const user = await User.create({ name, email, password, role });
+    const payload = user.toObject();
+    payload.id = payload._id.toString();
+    return payload;
+  }
+};
+
+const dbAsync = {
+  addContact: async (name, email, subject, message) => {
+    const contact = await Contact.create({ name, email, subject: subject || '', message });
+    const payload = contact.toObject();
+    payload.id = payload._id.toString();
+    return payload;
+  },
+  getContacts: async () => Contact.find().sort({ createdAt: -1 }).lean().then(rows => rows.map(row => ({ ...row, id: row._id.toString() }))),
+  addEnquiry: async (name, email, phone, property_id, message) => {
+    const enquiry = await Enquiry.create({ name, email, phone: phone || '', property_id: property_id || '', message });
+    const payload = enquiry.toObject();
+    payload.id = payload._id.toString();
+    return payload;
+  },
+  getEnquiries: async () => Enquiry.find().sort({ createdAt: -1 }).lean().then(rows => rows.map(row => ({ ...row, id: row._id.toString() }))),
+  getProperties: async () => Property.find().sort({ createdAt: 1 }).lean().then(rows => rows.map(row => ({ ...row, id: row._id.toString() }))),
+  addProperty: async (title, price, type, location, image) => {
+    const property = await Property.create({ title, price, type, location, image: image || './assets/images/property-1.jpg' });
+    const payload = property.toObject();
+    payload.id = payload._id.toString();
+    return payload;
   }
 };
 
 module.exports = {
   db,
-  dbAsync: isSupabaseConfigured ? supabaseAsync : sqliteAsync,
+  connectDB,
+  seedProperties,
+  dbAsync,
   usersAsync,
+  User,
+  Property,
+  Contact,
+  Enquiry,
   isSupabaseConfigured
 };

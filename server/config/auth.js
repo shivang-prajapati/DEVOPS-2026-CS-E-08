@@ -8,9 +8,11 @@ if (!JWT_SECRET) {
 }
 
 const signToken = (user) => {
+  const userId = user._id ? user._id.toString() : user.id;
+
   return jwt.sign(
     {
-      id: user.id,
+      id: userId,
       email: user.email,
       role: user.role
     },
