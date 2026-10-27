@@ -138,8 +138,15 @@ const dbAsync = {
   },
   getEnquiries: async () => Enquiry.find().sort({ createdAt: -1 }).lean().then(rows => rows.map(row => ({ ...row, id: row._id.toString() }))),
   getProperties: async () => Property.find().sort({ createdAt: 1 }).lean().then(rows => rows.map(row => ({ ...row, id: row._id.toString() }))),
-  addProperty: async (title, price, type, location, image) => {
-    const property = await Property.create({ title, price, type, location, image: image || './assets/images/property-1.jpg' });
+  addProperty: async (title, price, type, location, image, description = '') => {
+    const property = await Property.create({
+      title,
+      price,
+      type,
+      location,
+      image: image || './assets/images/property-1.jpg',
+      description
+    });
     const payload = property.toObject();
     payload.id = payload._id.toString();
     return payload;

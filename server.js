@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const app = require('./server/app');
 const { connectDB, seedProperties } = require('./server/config/database');
 

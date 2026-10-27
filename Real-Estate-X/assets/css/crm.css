@@ -1,0 +1,298 @@
+.crm-page {
+  min-height: 100vh;
+  background: var(--cultured-2);
+}
+
+.crm-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin-inline: auto;
+  padding-block: 24px 56px;
+}
+
+.crm-header,
+.crm-dashboard-heading,
+.inbox-heading,
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.crm-header {
+  margin-bottom: 36px;
+}
+
+.crm-brand img {
+  width: 150px;
+  max-height: 54px;
+  object-fit: contain;
+}
+
+.crm-intro {
+  max-width: 720px;
+  margin-bottom: 24px;
+}
+
+.crm-intro > p:last-child {
+  margin-top: 12px;
+  color: var(--cadet);
+}
+
+.crm-panel {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 30px);
+  background: var(--white);
+  border: 1px solid var(--cultured-1);
+  border-radius: 12px;
+  box-shadow: var(--shadow-1);
+}
+
+.auth-columns,
+.crm-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.crm-form {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.crm-form h2 {
+  margin-bottom: 4px;
+}
+
+.crm-form label {
+  margin-top: 4px;
+  color: var(--dark-jungle-green);
+  font-weight: var(--fw-600);
+}
+
+.crm-form input,
+.crm-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  color: var(--dark-jungle-green);
+  background: var(--cultured-2);
+  border: 1px solid #d5dfe2;
+  border-radius: 7px;
+  font: inherit;
+}
+
+.crm-form input:focus,
+.crm-form textarea:focus {
+  outline: 3px solid hsla(9, 100%, 62%, 0.25);
+  border-color: var(--orange-soda);
+}
+
+.crm-form .btn,
+.crm-form .secondary-btn,
+.inbox-heading .secondary-btn {
+  width: fit-content;
+  text-align: center;
+}
+
+.form-help {
+  color: var(--cadet);
+  font-size: var(--fs-5);
+  line-height: 1.65;
+}
+
+.form-status {
+  margin-block: 8px;
+  color: var(--cadet);
+  font-weight: var(--fw-600);
+  line-height: 1.5;
+}
+
+.form-status.is-success {
+  color: #176b3a;
+}
+
+.form-status.is-error {
+  color: #a32626;
+}
+
+.form-status.is-loading {
+  color: var(--prussian-blue);
+}
+
+.secondary-btn {
+  display: inline-block;
+  padding: 10px 15px;
+  color: var(--prussian-blue);
+  background: var(--white);
+  border: 1px solid #cbd6da;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: var(--fw-600);
+  cursor: pointer;
+  text-align: center;
+}
+
+.secondary-btn:hover,
+.secondary-btn:focus-visible {
+  border-color: var(--orange-soda);
+  color: var(--orange-soda);
+}
+
+.crm-dashboard {
+  display: grid;
+  gap: 20px;
+}
+
+.crm-dashboard-heading {
+  align-items: flex-start;
+  padding-block: 10px;
+}
+
+.crm-dashboard-heading h2 {
+  margin-bottom: 7px;
+}
+
+.inbox-panel {
+  overflow: hidden;
+}
+
+.inbox-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 22px;
+  border-bottom: 1px solid var(--cultured-1);
+}
+
+.inbox-tab {
+  padding: 10px 12px;
+  color: var(--cadet);
+  border-bottom: 3px solid transparent;
+  font-weight: var(--fw-600);
+  cursor: pointer;
+}
+
+.inbox-tab.active {
+  color: var(--orange-soda);
+  border-color: var(--orange-soda);
+}
+
+.inbox-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.inbox-list {
+  display: grid;
+  gap: 12px;
+}
+
+.inbox-record {
+  padding: 16px;
+  border: 1px solid var(--cultured-1);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.inbox-record h3 {
+  margin-bottom: 5px;
+}
+
+.inbox-record p {
+  margin-top: 8px;
+  color: var(--cadet);
+  white-space: pre-wrap;
+}
+
+.inbox-record-meta {
+  font-size: var(--fs-6);
+}
+
+.property-enquiry-form {
+  display: grid;
+  gap: 15px;
+  max-width: 760px;
+  margin: 28px auto 0;
+  padding: 24px;
+  background: var(--white);
+  border: 1px solid var(--cultured-1);
+  border-radius: 10px;
+  box-shadow: var(--shadow-1);
+}
+
+.public-form input,
+.public-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  color: var(--cadet);
+  background: var(--cultured-2);
+  border: 1px solid var(--cultured-1);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.public-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.property-enquiry-form .input-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.property-enquiry-form .btn:disabled,
+.crm-form .btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+@media (max-width: 760px) {
+  .auth-columns,
+  .crm-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-header {
+    margin-bottom: 28px;
+  }
+}
+
+@media (max-width: 520px) {
+  .crm-shell {
+    width: min(100% - 24px, 1120px);
+    padding-block: 16px 36px;
+  }
+
+  .crm-header,
+  .crm-dashboard-heading,
+  .inbox-heading {
+    align-items: flex-start;
+  }
+
+  .crm-header .secondary-btn,
+  .crm-dashboard-heading > .secondary-btn {
+    flex-shrink: 0;
+    padding: 9px 10px;
+    font-size: var(--fs-6);
+  }
+
+  .property-enquiry-form .input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .inbox-tabs {
+    gap: 0;
+  }
+
+  .inbox-tab {
+    padding-inline: 8px;
+    font-size: var(--fs-6);
+  }
+}

@@ -34,9 +34,10 @@ The `render.yaml` Blueprint deploys the Express server, static site, and CRM API
 
 5. Push the project, including `render.yaml`, to the GitHub branch you want to deploy.
 6. In Render, choose **New → Blueprint**, connect the repository and branch, review the `estatex-crm` service, and create it.
-7. When prompted, provide the Atlas URI for `MONGODB_URI`. Render generates `JWT_SECRET`; do not commit either secret. The service runs `npm ci --omit=dev` and `npm start`.
+7. When prompted, provide the Atlas URI for `MONGODB_URI`. Render generates `JWT_SECRET` and `ADMIN_SETUP_KEY`; do not commit either secret. The service runs `npm ci --omit=dev` and `npm start`.
 8. Add the Render outbound IP ranges to Atlas **Network Access**, then wait for the deployment and `/api/health` health check to succeed.
-9. Open the Render service URL. The public website is served at `/`; the CRM-related backend routes are under `/api`, and the health response is at `/api/health`. The health check reports `UP` only when MongoDB is connected.
+9. Create the first administrator by submitting a POST request to `/api/auth/setup-admin` with JSON fields `name`, `email`, `password` (at least 12 characters), and `setupKey` (the value of Render's `ADMIN_SETUP_KEY`). The endpoint works only before the first admin exists. Log in using `/api/auth/login` after creation, then remove `ADMIN_SETUP_KEY` from Render's environment and redeploy.
+10. Open the Render service URL. The public website is served at `/`; the CRM-related backend routes are under `/api`, and the health response is at `/api/health`. The health check reports `UP` only when MongoDB is connected.
 
 If deployment fails, check Render logs and confirm that `MONGODB_URI` has the correct password, database name, and Atlas cluster host, and that Atlas allows the Render outbound IP ranges.
 

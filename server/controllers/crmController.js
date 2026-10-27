@@ -77,13 +77,13 @@ const getProperties = async (req, res) => {
 
 const createProperty = async (req, res) => {
   try {
-    const { title, price, type, location, image } = req.body;
+    const { title, price, type, location, image, description } = req.body;
 
     if (!title || !price || !type || !location) {
       return sendError(res, 400, 'Title, price, type, and location are required.');
     }
 
-    const result = await dbAsync.addProperty(title, price, type, location, image || './assets/images/property-1.jpg');
+    const result = await dbAsync.addProperty(title, price, type, location, image || './assets/images/property-1.jpg', description || '');
     return sendSuccess(res, 201, result, 'New property entry added successfully.');
   } catch (err) {
     return sendError(res, 500, err.message);

@@ -5,11 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev": "node --watch server.js",
     "server": "node --watch server.js",
-    "client": "npm --prefix client run dev",
-    "build": "npm --prefix client run build",
-    "test": "node test/api.test.js && node test/auth.test.js",
+    "build": "node scripts/build.js",
+    "test": "node test/health.test.js && node test/api.test.js && node test/auth.test.js",
     "test:health": "node test/health.test.js"
   },
   "keywords": [

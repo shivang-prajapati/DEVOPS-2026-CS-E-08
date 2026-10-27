@@ -11,6 +11,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', apiRoutes);
+app.get(['/crm', '/crm/'], (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'Real-Estate-X', 'crm.html'));
+});
 
 app.use(express.static(path.join(__dirname, '..', 'Real-Estate-X')));
 

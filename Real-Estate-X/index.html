@@ -16,6 +16,7 @@
     - custom css link
   -->
   <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="./assets/css/crm.css">
 
   <!--
     - google font link
@@ -89,7 +90,7 @@
 
           </ul>
 
-          <button class="header-top-btn">Add Listing</button>
+          <a class="header-top-btn" href="/crm">Add Listing</a>
         </div>
 
       </div>
@@ -211,7 +212,7 @@
               ease.
             </p>
 
-            <button class="btn">Make An Enquiry</button>
+            <a class="btn" href="#property">Browse listings and enquire</a>
 
           </div>
 
@@ -401,7 +402,8 @@
 
           <h2 class="h2 section-title">Featured Listings</h2>
 
-          <ul class="property-list has-scrollbar">
+          <p id="property-list-status" class="form-status" role="status" aria-live="polite">Loading listings…</p>
+          <ul class="property-list has-scrollbar" id="property-list" aria-live="polite">
 
             <li>
               <div class="property-card">
@@ -745,6 +747,23 @@
             </li>
 
           </ul>
+
+          <form id="property-enquiry-form" class="public-form property-enquiry-form" hidden>
+            <h3 class="h3">Enquire about <span id="enquiry-property-title"></span></h3>
+            <p class="form-help">Send a message to our team about this listing.</p>
+            <input type="hidden" id="enquiry-property-id" name="property_id">
+            <div class="input-row">
+              <input type="text" id="enquiry-name" name="name" placeholder="Your name" aria-label="Your name" autocomplete="name" required>
+              <input type="email" id="enquiry-email" name="email" placeholder="Your email" aria-label="Your email" autocomplete="email" required>
+            </div>
+            <input type="tel" id="enquiry-phone" name="phone" placeholder="Phone (optional)" aria-label="Phone (optional)" autocomplete="tel">
+            <textarea id="enquiry-message" name="message" placeholder="Your message" aria-label="Your message" required></textarea>
+            <div class="form-actions">
+              <button type="submit" class="btn">Send enquiry</button>
+              <button type="button" class="secondary-btn" id="cancel-enquiry">Cancel</button>
+            </div>
+            <p id="property-enquiry-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
 
         </div>
       </section>
@@ -1133,7 +1152,7 @@
                 required></textarea>
 
               <button type="submit" class="btn" id="contact-submit-btn">Send Message</button>
-              <div id="contact-form-status" style="margin-top: 15px; font-weight: 600;"></div>
+              <div id="contact-form-status" class="form-status" role="status" aria-live="polite"></div>
             </form>
           </div>
 

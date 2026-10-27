@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="EstateX agent and administrator workspace">
+  <title>EstateX CRM</title>
+  <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/crm.css">
+</head>
+<body class="crm-page">
+  <main class="crm-shell">
+    <header class="crm-header">
+      <a class="crm-brand" href="/" aria-label="EstateX home">
+        <img src="/assets/images/logo.png" alt="EstateX">
+      </a>
+      <a class="secondary-btn" href="/">Back to website</a>
+    </header>
+
+    <section class="crm-intro" aria-labelledby="crm-title">
+      <p class="section-subtitle">EstateX workspace</p>
+      <h1 class="h2" id="crm-title">Property management CRM</h1>
+      <p>Sign in with an authorized account to create listings and manage incoming enquiries.</p>
+    </section>
+
+    <section id="auth-panel" class="crm-panel auth-panel" aria-label="CRM sign in and administrator setup">
+      <div class="auth-columns">
+        <form id="login-form" class="crm-form">
+          <h2 class="h3">Sign in</h2>
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" autocomplete="username" required>
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" autocomplete="current-password" required>
+          <button type="submit" class="btn">Sign in</button>
+          <p id="login-status" class="form-status" role="status" aria-live="polite"></p>
+        </form>
+
+        <form id="setup-form" class="crm-form">
+          <h2 class="h3">First administrator setup</h2>
+          <p class="form-help">Use this only to create the first admin. Setup is available only while the server has no admin account and setup is enabled.</p>
+          <label for="setup-name">Name</label>
+          <input type="text" id="setup-name" name="name" autocomplete="name" required>
+          <label for="setup-email">Email</label>
+          <input type="email" id="setup-email" name="email" autocomplete="email" required>
+          <label for="setup-password">Password (at least 12 characters)</label>
+          <input type="password" id="setup-password" name="password" minlength="12" autocomplete="new-password" required>
+          <label for="setup-key">Setup key</label>
+          <input type="password" id="setup-key" name="setupKey" autocomplete="off" required>
+          <p class="form-help">The setup key is the <code>ADMIN_SETUP_KEY</code> environment variable configured for your service in Render. Never share it.</p>
+          <button type="submit" class="btn">Create first administrator</button>
+          <p id="setup-status" class="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <section id="dashboard" class="crm-dashboard" hidden aria-label="CRM dashboard">
+      <div class="crm-dashboard-heading">
+        <div>
+          <p class="section-subtitle">Signed in</p>
+          <h2 class="h2" id="welcome-heading">Your workspace</h2>
+          <p id="role-summary" class="form-help"></p>
+        </div>
+        <button type="button" class="secondary-btn" id="logout-button">Sign out</button>
+      </div>
+
+      <p id="access-status" class="form-status" role="status" aria-live="polite"></p>
+
+      <div class="crm-columns">
+        <section class="crm-panel" aria-labelledby="listing-heading">
+          <h2 class="h3" id="listing-heading">Add a property listing</h2>
+          <p id="listing-access-note" class="form-help"></p>
+          <form id="property-form" class="crm-form">
+            <label for="property-title">Title</label>
+            <input id="property-title" name="title" type="text" required>
+            <label for="property-price">Price</label>
+            <input id="property-price" name="price" type="text" placeholder="e.g. Rs 35,000 / month" required>
+            <label for="property-type">Type</label>
+            <input id="property-type" name="type" type="text" placeholder="e.g. Apartment, For rent" required>
+            <label for="property-location">Location</label>
+            <input id="property-location" name="location" type="text" required>
+            <label for="property-description">Description (optional)</label>
+            <textarea id="property-description" name="description" rows="4"></textarea>
+            <label for="property-image">Image URL or path (optional)</label>
+            <input id="property-image" name="image" type="text" placeholder="./assets/images/property-1.jpg">
+            <button type="submit" class="btn" id="property-submit">Create listing</button>
+            <p id="property-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="crm-panel inbox-panel" aria-labelledby="inbox-heading">
+          <div class="inbox-heading">
+            <div>
+              <h2 class="h3" id="inbox-heading">Inbox</h2>
+              <p class="form-help">Review messages submitted through the public website.</p>
+            </div>
+            <button type="button" class="secondary-btn" id="refresh-inbox">Refresh</button>
+          </div>
+          <div class="inbox-tabs" role="tablist" aria-label="Inbox type">
+            <button type="button" class="inbox-tab active" id="enquiries-tab" role="tab" aria-selected="true">Property enquiries</button>
+            <button type="button" class="inbox-tab" id="contacts-tab" role="tab" aria-selected="false">Contact messages</button>
+          </div>
+          <p id="inbox-status" class="form-status" role="status" aria-live="polite"></p>
+          <div id="inbox-list" class="inbox-list" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+  <script src="/assets/js/crm.js"></script>
+</body>
+</html>
