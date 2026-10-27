@@ -1,28 +1,36 @@
 {
-  "name": "devops-estatex",
+  "name": "estatex-mern",
   "version": "1.0.0",
-  "description": "EstateX Real Estate Web Platform with Express Backend and Jenkins CI/CD Testing",
+  "description": "EstateX MERN stack real-estate platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/api.test.js && node test/auth.test.js"
+    "dev": "node --watch server.js",
+    "server": "node --watch server.js",
+    "build": "node scripts/build.js",
+    "test": "node test/health.test.js && node test/api.test.js && node test/auth.test.js",
+    "test:health": "node test/health.test.js"
   },
   "keywords": [
-    "devops",
+    "mern",
+    "mongodb",
+    "react",
     "real-estate",
-    "jenkins",
-    "express",
-    "sqlite"
+    "express"
   ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@supabase/supabase-js": "^2.118.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.6.1",
     "prom-client": "^15.1.3",
     "sqlite3": "^6.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
   }
 }

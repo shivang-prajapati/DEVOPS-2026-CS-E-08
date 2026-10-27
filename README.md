@@ -1,45 +1,47 @@
 # EstateX
 
-EstateX is an Express API and static real-estate website. Local development uses SQLite; production uses Supabase Postgres and is hosted as a Vercel Node function.
+EstateX is an Express API, static real-estate website, and CRM platform.
 
-## Local Development
+## Stack
 
-Requirements: Node.js 20 or newer.
+- **Frontend**: Static landing page with dynamic API data flow and CRM dashboard (`/crm`)
+- **Backend**: Express API with JWT auth and metrics instrumentation
+- **Database**: MongoDB (production / Render) or SQLite (local / fallback)
+- **Monitoring**: Prometheus and Grafana dashboards
 
-```sh
-npm ci
+## Local development
+
+Requirements: Node.js 20+.
+
+```bash
+npm install
 npm test
 npm start
 ```
 
-Without Supabase credentials and with `NODE_ENV` unset or set to `development`, the API uses `database.sqlite` and local demo users. Do not use the demo credentials or development JWT secret in production.
+Set up a `.env` file using the values in `.env.example`.
 
-## Supabase Setup
+## Deploy the backend and CRM on Render
 
-1. Create a Supabase project.
-2. Run [`supabase/schema.sql`](supabase/schema.sql) in the Supabase SQL Editor.
-3. Keep the service-role key on the server only. The schema enables row-level security and grants application access only to `service_role`.
+The `render.yaml` Blueprint deploys the Express server, static site, and CRM API as one Render web service. MongoDB is hosted separately on MongoDB Atlas; Render stores the connection string as a secret environment variable.
 
-## Vercel Deployment
+1. Create a MongoDB Atlas project and cluster.
+2. In Atlas **Database Access**, create a database user with read/write access to the `estatex` database.
+3. In Atlas **Network Access**, add the outbound IP ranges shown for the Render service after it is created. Do not leave the database open to `0.0.0.0/0` for production.
+4. In Atlas, choose **Connect → Drivers**, copy the connection string, replace its password placeholder, and set the database name to `estatex`. URL-encode special characters in the password. It should look like:
 
-Import this repository into Vercel and set the project root to the repository root. The checked-in [`vercel.json`](vercel.json) routes the website and API through the Express function. No separate build command or output directory is required.
+   ```text
+   mongodb+srv://<database-user>:<encoded-password>@<cluster-host>/estatex?retryWrites=true&w=majority&appName=EstateX
+   ```
 
-Set these Vercel environment variables for Production:
+5. Push the project, including `render.yaml`, to the GitHub branch you want to deploy.
+6. In Render, choose **New → Blueprint**, connect the repository and branch, review the `estatex-crm` service, and create it.
+7. When prompted, provide the Atlas URI for `MONGODB_URI`. Render generates `JWT_SECRET` and `ADMIN_SETUP_KEY`; do not commit either secret. The service runs `npm ci --omit=dev` and `npm start`.
+8. Add the Render outbound IP ranges to Atlas **Network Access**, then wait for the deployment and `/api/health` health check to succeed.
+9. Create the first administrator by submitting a POST request to `/api/auth/setup-admin` with JSON fields `name`, `email`, `password` (at least 12 characters), and `setupKey` (the value of Render's `ADMIN_SETUP_KEY`). The endpoint works only before the first admin exists. Log in using `/api/auth/login` after creation, then remove `ADMIN_SETUP_KEY` from Render's environment and redeploy.
+10. Open the Render service URL. The public website is served at `/`; the CRM-related backend routes are under `/api`, and the health response is at `/api/health`. The health check reports `UP` only when MongoDB is connected.
 
-- `NODE_ENV=production`
-- `JWT_SECRET` to a long, unique random value
-- `SUPABASE_URL` to the Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY` to the server-side service-role key
-
-Deploy, then verify `/api/health` reports `database: "supabase"`. Public registration always creates client accounts. To grant staff access, register the account first, then promote it from the Supabase SQL Editor, for example:
-
-```sql
-update public.users
-set role = 'admin'
-where email = 'approved-admin@example.com';
-```
-
-The user must sign in again to receive a token with the updated role. Never expose `SUPABASE_SERVICE_ROLE_KEY` in browser code or a `NEXT_PUBLIC_*` variable.
+If deployment fails, check Render logs and confirm that `MONGODB_URI` has the correct password, database name, and Atlas cluster host, and that Atlas allows the Render outbound IP ranges.
 
 ## Docker & Prometheus Monitoring Setup
 
@@ -71,4 +73,30 @@ The project includes full Docker, Prometheus, and Grafana instrumentation.
 4. **Stop containers**:
    ```sh
    docker compose down
-   ```
+   ```
+
+## Environment variables
+
+```env
+PORT=3000
+NODE_ENV=development
+MONGODB_URI=mongodb://127.0.0.1:27017/estatex
+JWT_SECRET=change-me-to-a-long-random-secret
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:5173
+```
+
+## API routes
+
+- `GET /api/health`
+- `GET /metrics`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `GET /api/auth/admin-check`
+- `GET /api/properties`
+- `POST /api/properties`
+- `POST /api/contact`
+- `GET /api/contact`
+- `POST /api/enquiries`
+- `GET /api/enquiries`

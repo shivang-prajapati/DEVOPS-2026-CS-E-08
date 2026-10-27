@@ -10,6 +10,104 @@
 			],
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "Stage EstateX deployment changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"-A",
+				"--",
+				".",
+				":!.vscode/settings.json",
+				":!.vscode/tasks.json"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Review staged code changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--cached",
+				"--stat"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify staged paths",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--cached",
+				"--name-only"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Commit EstateX deployment changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"-m",
+				"Add EstateX CRM and deployment setup",
+				"-m",
+				"Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check branch and staged changes",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check recent branch commits",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"log",
+				"-5",
+				"--oneline",
+				"--decorate"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect latest local commit",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"show",
+				"--stat",
+				"--oneline",
+				"e786244"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Read-only Git inspection",
+			"type": "shell",
+			"command": "git status --short --branch; git log --oneline --decorate -8; git show --stat --oneline HEAD; git rev-list --left-right --count HEAD...origin/main; git diff --name-only; git diff --cached --name-only",
+			"isBackground": false,
+			"problemMatcher": []
 		}
 	]
 }

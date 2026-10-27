@@ -1,38 +1,67 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { signToken } = require('../config/auth');
-const { isSupabaseConfigured, usersAsync } = require('../config/database');
+const { usersAsync, User } = require('../config/database');
 const { sendSuccess, sendError } = require('../utils/response');
 
-const users = process.env.NODE_ENV === 'production' ? [] : [
-  {
-    id: 1,
-    name: 'Admin User',
-    email: 'admin@estatex.com',
-    password: bcrypt.hashSync('Admin@123', 10),
-    role: 'admin'
-  },
-  {
-    id: 2,
-    name: 'Agent User',
-    email: 'agent@estatex.com',
-    password: bcrypt.hashSync('Agent@123', 10),
-    role: 'agent'
-  },
-  {
-    id: 3,
-    name: 'Manager User',
-    email: 'manager@estatex.com',
-    password: bcrypt.hashSync('Manager@123', 10),
-    role: 'manager'
-  },
-  {
-    id: 4,
-    name: 'Client User',
-    email: 'client@estatex.com',
-    password: bcrypt.hashSync('Client@123', 10),
-    role: 'client'
+const createInitialAdmin = async (req, res) => {
+  const expectedKey = process.env.ADMIN_SETUP_KEY;
+  const setupKey = typeof req.body.setupKey === 'string' ? req.body.setupKey : '';
+
+  if (!expectedKey) {
+    return sendError(res, 503, 'Administrator setup is not enabled.');
   }
-];
+
+  const providedBuffer = Buffer.from(setupKey);
+  const expectedBuffer = Buffer.from(expectedKey);
+  const keyMatches = providedBuffer.length === expectedBuffer.length
+    && crypto.timingSafeEqual(providedBuffer, expectedBuffer);
+
+  if (!keyMatches) {
+    return sendError(res, 403, 'Invalid administrator setup key.');
+  }
+
+  try {
+    if (await User.exists({ role: 'admin' })) {
+      return sendError(res, 409, 'An administrator account already exists.');
+    }
+
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return sendError(res, 400, 'Name, email, and password are required.');
+    }
+    if (String(password).length < 12) {
+      return sendError(res, 400, 'Administrator password must be at least 12 characters.');
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    if (await usersAsync.getByEmail(normalizedEmail)) {
+      return sendError(res, 409, 'An account already uses this email address.');
+    }
+
+    const admin = await usersAsync.create({
+      name: String(name).trim(),
+      email: normalizedEmail,
+      password: String(password),
+      role: 'admin'
+    });
+
+    return sendSuccess(res, 201, {
+      user: {
+        id: admin._id || admin.id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role
+      },
+      token: signToken(admin)
+    }, 'Administrator account created. Store the password securely and remove ADMIN_SETUP_KEY from Render.');
+  } catch (error) {
+    if (error && (error.code === 11000 || error.code === '11000')) {
+      return sendError(res, 409, 'An account already uses this email address.');
+    }
+    return sendError(res, 500, error.message);
+  }
+};
 
 const register = async (req, res) => {
   try {
@@ -43,31 +72,23 @@ const register = async (req, res) => {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    const existingUser = isSupabaseConfigured
-      ? await usersAsync.getByEmail(normalizedEmail)
-      : users.find((user) => user.email.toLowerCase() === normalizedEmail);
+    const existingUser = await usersAsync.getByEmail(normalizedEmail);
     if (existingUser) {
       return sendError(res, 409, 'User already exists.');
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
-    const newUser = isSupabaseConfigured
-      ? await usersAsync.create({ name, email: normalizedEmail, password_hash: passwordHash })
-      : {
-        id: users.length + 1,
-        name,
-        email: normalizedEmail,
-        password: passwordHash,
-        role: 'client'
-      };
-
-    if (!isSupabaseConfigured) users.push(newUser);
+    const newUser = await usersAsync.create({
+      name: String(name).trim(),
+      email: normalizedEmail,
+      password: String(password),
+      role: 'client'
+    });
 
     const token = signToken(newUser);
 
     return sendSuccess(res, 201, {
       user: {
-        id: newUser.id,
+        id: newUser._id || newUser.id,
         name: newUser.name,
         email: newUser.email,
         role: newUser.role
@@ -75,7 +96,7 @@ const register = async (req, res) => {
       token
     }, 'User registered successfully.');
   } catch (error) {
-    if (error.code === '23505') {
+    if (error && (error.code === 11000 || error.code === '11000')) {
       return sendError(res, 409, 'User already exists.');
     }
     return sendError(res, 500, error.message);
@@ -91,14 +112,12 @@ const login = async (req, res) => {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    const user = isSupabaseConfigured
-      ? await usersAsync.getByEmail(normalizedEmail)
-      : users.find((item) => item.email.toLowerCase() === normalizedEmail);
+    const user = await usersAsync.getByEmail(normalizedEmail);
     if (!user) {
       return sendError(res, 401, 'Invalid credentials.');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash || user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return sendError(res, 401, 'Invalid credentials.');
     }
@@ -107,7 +126,7 @@ const login = async (req, res) => {
 
     return sendSuccess(res, 200, {
       user: {
-        id: user.id,
+        id: user._id || user.id,
         name: user.name,
         email: user.email,
         role: user.role
@@ -121,16 +140,14 @@ const login = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const user = isSupabaseConfigured
-      ? await usersAsync.getById(req.user.id)
-      : users.find((item) => item.id === req.user.id);
+    const user = await User.findById(req.user.id).lean();
 
     if (!user) {
       return sendError(res, 404, 'User not found.');
     }
 
     return sendSuccess(res, 200, {
-      id: user.id,
+      id: user._id || user.id,
       name: user.name,
       email: user.email,
       role: user.role
@@ -141,6 +158,7 @@ const getProfile = async (req, res) => {
 };
 
 module.exports = {
+  createInitialAdmin,
   register,
   login,
   getProfile

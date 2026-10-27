@@ -1,17 +1,19 @@
-const { dbAsync, isSupabaseConfigured } = require('../config/database');
+const mongoose = require('mongoose');
+const { dbAsync } = require('../config/database');
 const { sendSuccess, sendError } = require('../utils/response');
 
 const healthCheck = (req, res) => {
+  const isDatabaseConnected = mongoose.connection.readyState === 1;
   const payload = {
-    status: 'UP',
+    status: isDatabaseConnected ? 'UP' : 'DOWN',
     environment: process.env.NODE_ENV || 'development',
-    database: isSupabaseConfigured ? 'supabase' : 'sqlite',
+    database: 'mongodb',
     timestamp: new Date().toISOString()
   };
 
-  return res.status(200).json({
-    success: true,
-    message: 'EstateX service is healthy',
+  return res.status(isDatabaseConnected ? 200 : 503).json({
+    success: isDatabaseConnected,
+    message: isDatabaseConnected ? 'EstateX service is healthy' : 'MongoDB is unavailable',
     ...payload
   });
 };
@@ -75,13 +77,13 @@ const getProperties = async (req, res) => {
 
 const createProperty = async (req, res) => {
   try {
-    const { title, price, type, location, image } = req.body;
+    const { title, price, type, location, image, description } = req.body;
 
     if (!title || !price || !type || !location) {
       return sendError(res, 400, 'Title, price, type, and location are required.');
     }
 
-    const result = await dbAsync.addProperty(title, price, type, location, image || './assets/images/property-1.jpg');
+    const result = await dbAsync.addProperty(title, price, type, location, image || './assets/images/property-1.jpg', description || '');
     return sendSuccess(res, 201, result, 'New property entry added successfully.');
   } catch (err) {
     return sendError(res, 500, err.message);
