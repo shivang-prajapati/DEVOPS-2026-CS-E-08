@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const isSupabaseConfigured = false;
 const isProduction = process.env.NODE_ENV === 'production';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/estatex';
 
@@ -13,7 +12,7 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 5000,
       autoIndex: true
     });
-    console.log('Connected to MongoDB at:', MONGODB_URI);
+    console.log('Connected to MongoDB.');
     return db;
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
@@ -157,5 +156,4 @@ module.exports = {
   Property,
   Contact,
   Enquiry,
-  isSupabaseConfigured
 };

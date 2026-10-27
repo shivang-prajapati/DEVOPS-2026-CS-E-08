@@ -1,17 +1,19 @@
-const { dbAsync, isSupabaseConfigured } = require('../config/database');
+const mongoose = require('mongoose');
+const { dbAsync } = require('../config/database');
 const { sendSuccess, sendError } = require('../utils/response');
 
 const healthCheck = (req, res) => {
+  const isDatabaseConnected = mongoose.connection.readyState === 1;
   const payload = {
-    status: 'UP',
+    status: isDatabaseConnected ? 'UP' : 'DOWN',
     environment: process.env.NODE_ENV || 'development',
-    database: isSupabaseConfigured ? 'supabase' : 'sqlite',
+    database: 'mongodb',
     timestamp: new Date().toISOString()
   };
 
-  return res.status(200).json({
-    success: true,
-    message: 'EstateX service is healthy',
+  return res.status(isDatabaseConnected ? 200 : 503).json({
+    success: isDatabaseConnected,
+    message: isDatabaseConnected ? 'EstateX service is healthy' : 'MongoDB is unavailable',
     ...payload
   });
 };
