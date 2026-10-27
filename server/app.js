@@ -3,12 +3,16 @@ const cors = require('cors');
 const path = require('path');
 const apiRoutes = require('./routes');
 const { sendError } = require('./utils/response');
+const { metricsMiddleware, metricsEndpoint } = require('./middleware/metrics');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(metricsMiddleware);
+
+app.get('/metrics', metricsEndpoint);
 
 app.use('/api', apiRoutes);
 

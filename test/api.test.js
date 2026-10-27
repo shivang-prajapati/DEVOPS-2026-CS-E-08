@@ -116,6 +116,14 @@ async function runTests() {
     assert.ok(getProps.body.data.length >= 3, 'Initial seeded properties should exist');
     console.log(' -> PASSED: Retrieved', getProps.body.data.length, 'properties from database');
 
+    // 6. Prometheus Metrics Endpoint
+    console.log('\n[TEST 6] GET /metrics (Prometheus Metrics Endpoint)');
+    const metricsRes = await request('GET', '/metrics');
+    assert.strictEqual(metricsRes.status, 200, 'Metrics endpoint status should be 200');
+    assert.ok(typeof metricsRes.body === 'string', 'Metrics response should be prometheus text format');
+    assert.ok(metricsRes.body.includes('http_requests_total'), 'Metrics should include http_requests_total');
+    console.log(' -> PASSED: Prometheus metrics endpoint operational');
+
     console.log('\n========================================');
     console.log('ALL BACKEND & DATABASE DATA ENTRY TESTS PASSED!');
     console.log('========================================\n');
