@@ -64,7 +64,70 @@ const propertyList = document.getElementById('property-list');
 const propertyStatus = document.getElementById('property-list-status');
 const enquiryForm = document.getElementById('property-enquiry-form');
 const enquiryStatus = document.getElementById('property-enquiry-status');
+const searchDialog = document.getElementById('property-search-dialog');
+const searchInput = document.getElementById('property-search-input');
+const searchStatus = document.getElementById('property-search-status');
+const savedDialog = document.getElementById('saved-properties-dialog');
+const savedPropertyList = document.getElementById('saved-property-list');
+const savedPropertyStatus = document.getElementById('saved-properties-status');
+const savedPropertyCount = document.getElementById('saved-property-count');
+let loadedProperties = [];
 let selectedPropertyId = '';
+
+const getSavedPropertyIds = () => {
+  try {
+    const savedIds = JSON.parse(localStorage.getItem('estatex-saved-properties') || '[]');
+    return Array.isArray(savedIds) ? savedIds.map(String) : [];
+  } catch (error) {
+    return [];
+  }
+};
+
+const savePropertyIds = (ids) => {
+  try {
+    localStorage.setItem('estatex-saved-properties', JSON.stringify(ids));
+    return true;
+  } catch (error) {
+    setStatus(savedPropertyStatus, 'Your browser could not save this shortlist.', 'error');
+    return false;
+  }
+};
+
+const renderSavedProperties = () => {
+  const savedIds = getSavedPropertyIds();
+  if (savedPropertyCount) savedPropertyCount.textContent = savedIds.length ? `Cart (${savedIds.length})` : 'Cart';
+  if (!savedPropertyList) return;
+  const savedProperties = loadedProperties.filter((property) => savedIds.includes(String(property.id)));
+  savedPropertyList.replaceChildren(...savedProperties.map((property) => makePropertyCard(property)));
+  setStatus(savedPropertyStatus, savedProperties.length ? `${savedProperties.length} saved listing${savedProperties.length === 1 ? '' : 's'}.` : 'Your shortlist is empty. Save a property from its listing to add it here.', '');
+};
+
+const toggleSavedProperty = (property) => {
+  if (!property.id) return;
+  const propertyId = String(property.id);
+  const savedIds = getSavedPropertyIds();
+  const updatedIds = savedIds.includes(propertyId)
+    ? savedIds.filter((id) => id !== propertyId)
+    : [...savedIds, propertyId];
+  if (!savePropertyIds(updatedIds)) return;
+  renderSavedProperties();
+};
+
+const filterProperties = () => {
+  if (!propertyList || !searchInput) return;
+  const query = searchInput.value.trim().toLocaleLowerCase();
+  let visibleCount = 0;
+  Array.from(propertyList.children).forEach((item) => {
+    const matches = !query || item.textContent.toLocaleLowerCase().includes(query);
+    item.hidden = !matches;
+    if (matches) visibleCount += 1;
+  });
+  if (searchStatus) {
+    searchStatus.textContent = query
+      ? `${visibleCount} of ${loadedProperties.length} listing${loadedProperties.length === 1 ? '' : 's'} match your search.`
+      : 'Enter a search to filter listings.';
+  }
+};
 
 const makePropertyCard = (property) => {
   const item = makeNode('li');
@@ -107,7 +170,13 @@ const makePropertyCard = (property) => {
     enquiryForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
     document.getElementById('enquiry-name').focus();
   });
-  actions.append(enquireButton);
+  const savedIds = getSavedPropertyIds();
+  const saveButton = makeNode('button', 'secondary-btn card-save-btn', savedIds.includes(String(property.id)) ? 'Remove from saved' : 'Save property');
+  saveButton.type = 'button';
+  saveButton.disabled = !property.id;
+  if (savedIds.includes(String(property.id))) saveButton.classList.add('is-saved');
+  saveButton.addEventListener('click', () => toggleSavedProperty(property));
+  actions.append(enquireButton, saveButton);
   card.append(banner, content, actions);
   item.append(card);
   return item;
@@ -119,16 +188,19 @@ const loadProperties = async () => {
   setStatus(propertyStatus, 'Loading listings…', 'loading');
   try {
     const payload = await apiError(await fetch('/api/properties', { headers: { Accept: 'application/json' } }));
-    const properties = Array.isArray(payload.data) ? payload.data : payload.data && Array.isArray(payload.data.properties) ? payload.data.properties : null;
-    if (!properties) throw new Error('The listings response was not in the expected format.');
-    if (!properties.length) {
+    const listings = Array.isArray(payload.data) ? payload.data : payload.data && Array.isArray(payload.data.properties) ? payload.data.properties : null;
+    if (!listings) throw new Error('The listings response was not in the expected format.');
+    loadedProperties = listings;
+    if (!listings.length) {
       setStatus(propertyStatus, 'No properties are available right now. Please check back soon.', '');
       return;
     }
     const fragment = document.createDocumentFragment();
-    properties.forEach((property) => fragment.append(makePropertyCard(property)));
+    listings.forEach((property) => fragment.append(makePropertyCard(property)));
     propertyList.replaceChildren(fragment);
-    setStatus(propertyStatus, `${properties.length} listing${properties.length === 1 ? '' : 's'} available.`, 'success');
+    filterProperties();
+    renderSavedProperties();
+    setStatus(propertyStatus, `${listings.length} listing${listings.length === 1 ? '' : 's'} available.`, 'success');
   } catch (error) {
     setStatus(propertyStatus, `${error.message} Listings could not be loaded. Please try again.`, 'error');
     const retry = makeNode('button', 'secondary-btn', 'Retry loading listings');
@@ -138,6 +210,28 @@ const loadProperties = async () => {
     propertyStatus.append(retry);
   }
 };
+
+document.getElementById('open-property-search')?.addEventListener('click', () => {
+  if (!searchDialog || typeof searchDialog.showModal !== 'function') {
+    document.getElementById('property')?.scrollIntoView({ behavior: 'smooth' });
+    searchInput?.focus();
+    return;
+  }
+  searchDialog.showModal();
+  searchInput?.focus();
+});
+
+searchInput?.addEventListener('input', filterProperties);
+document.getElementById('show-property-results')?.addEventListener('click', () => {
+  searchDialog?.close();
+  document.getElementById('property')?.scrollIntoView({ behavior: 'smooth' });
+});
+
+document.getElementById('open-saved-properties')?.addEventListener('click', () => {
+  renderSavedProperties();
+  if (savedDialog && typeof savedDialog.showModal === 'function') savedDialog.showModal();
+  else document.getElementById('property')?.scrollIntoView({ behavior: 'smooth' });
+});
 
 if (propertyList) loadProperties();
 

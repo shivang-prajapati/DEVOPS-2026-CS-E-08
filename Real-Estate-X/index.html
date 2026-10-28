@@ -151,22 +151,22 @@
 
         <div class="header-bottom-actions">
 
-          <button class="header-bottom-actions-btn" aria-label="Search">
+          <button class="header-bottom-actions-btn" id="open-property-search" aria-label="Search properties">
             <ion-icon name="search-outline"></ion-icon>
 
             <span>Search</span>
           </button>
 
-          <button class="header-bottom-actions-btn" aria-label="Profile">
+          <a class="header-bottom-actions-btn" href="/crm" aria-label="Profile and sign in">
             <ion-icon name="person-outline"></ion-icon>
 
             <span>Profile</span>
-          </button>
+          </a>
 
-          <button class="header-bottom-actions-btn" aria-label="Cart">
+          <button class="header-bottom-actions-btn" id="open-saved-properties" aria-label="Saved properties">
             <ion-icon name="cart-outline"></ion-icon>
 
-            <span>Cart</span>
+            <span id="saved-property-count">Cart</span>
           </button>
 
           <button class="header-bottom-actions-btn" data-nav-open-btn aria-label="Open Menu">
@@ -185,6 +185,26 @@
 
 
 
+
+  <dialog class="site-dialog" id="property-search-dialog" aria-labelledby="property-search-title">
+    <form method="dialog" class="site-dialog-close-form">
+      <button class="site-dialog-close" aria-label="Close search">&times;</button>
+    </form>
+    <h2 class="h2" id="property-search-title">Find a property</h2>
+    <label class="dialog-label" for="property-search-input">Search listings</label>
+    <input id="property-search-input" type="search" placeholder="Title, location, type, or price" autocomplete="off">
+    <p id="property-search-status" class="form-status" role="status" aria-live="polite">Enter a search to filter listings.</p>
+    <button class="btn" id="show-property-results" type="button">Show results</button>
+  </dialog>
+
+  <dialog class="site-dialog saved-dialog" id="saved-properties-dialog" aria-labelledby="saved-properties-title">
+    <form method="dialog" class="site-dialog-close-form">
+      <button class="site-dialog-close" aria-label="Close saved properties">&times;</button>
+    </form>
+    <h2 class="h2" id="saved-properties-title">Saved properties</h2>
+    <p id="saved-properties-status" class="form-status" role="status" aria-live="polite">Your shortlist is stored on this device.</p>
+    <ul class="saved-property-list" id="saved-property-list"></ul>
+  </dialog>
 
   <main>
     <article>

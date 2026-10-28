@@ -469,6 +469,12 @@ a {
   color: var(--orange-soda);
 }
 
+.header-bottom-actions-btn {
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}
+
 .header-bottom-actions-btn span {
   color: var(--cadet);
   font-family: var(--ff-poppins);
@@ -897,6 +903,94 @@ a {
 .card-footer-actions-btn:is(:hover, :focus) {
   background: var(--orange-soda);
   color: var(--white);
+}
+
+.card-save-btn.is-saved {
+  background: var(--orange-soda);
+  color: var(--white);
+}
+
+.card-save-btn {
+  padding: 10px 16px;
+  border: 1px solid var(--light-gray);
+  color: var(--dark-jungle-green);
+  font-family: var(--ff-poppins);
+  font-weight: var(--fw-600);
+  cursor: pointer;
+}
+
+.card-save-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.site-dialog {
+  border: 0;
+  border-top: 4px solid var(--orange-soda);
+  width: min(520px, calc(100% - 32px));
+  max-height: min(85vh, 760px);
+  padding: 28px;
+  color: var(--dark-jungle-green);
+  box-shadow: 0 18px 60px hsla(0, 0%, 0%, 0.28);
+}
+
+.site-dialog::backdrop {
+  background: hsla(0, 0%, 0%, 0.58);
+}
+
+.site-dialog-close-form {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.site-dialog-close {
+  width: 36px;
+  height: 36px;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--cadet);
+}
+
+.site-dialog h2 {
+  margin-bottom: 18px;
+}
+
+.dialog-label {
+  display: block;
+  margin-bottom: 7px;
+  font-weight: var(--fw-600);
+}
+
+#property-search-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--light-gray);
+  color: var(--dark-jungle-green);
+}
+
+.site-dialog .form-status {
+  margin-block: 12px 18px;
+}
+
+.saved-dialog {
+  width: min(760px, calc(100% - 32px));
+}
+
+.saved-property-list {
+  display: grid;
+  gap: 16px;
+  max-height: 55vh;
+  overflow: auto;
+}
+
+.saved-property-list .property-card {
+  box-shadow: 0 2px 12px hsla(0, 0%, 0%, 0.1);
+}
+
+.saved-property-list .card-banner img {
+  max-height: 220px;
+  object-fit: cover;
 }
 
 
